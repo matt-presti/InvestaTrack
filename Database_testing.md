@@ -7,15 +7,15 @@
 The User table stores information about registered users of the investment portfolio tracker application.
 
 **Attributes and Description**
-- `userId` (BIGINT, Primary Key, Auto Increment): Unique identifier for each user
-- `username` (VARCHAR(50), Not Null, Unique): User's login username
-- `email` (VARCHAR(100), Not Null, Unique): User's email address
-- `passwordHash` (VARCHAR(255), Not Null): Encrypted password
-- `firstName` (VARCHAR(50), Not Null): User's first name
-- `lastName` (VARCHAR(50), Not Null): User's last name
-- `createdAt` (TIMESTAMP, Not Null): Account creation timestamp
-- `lastLoginAt` (TIMESTAMP, Nullable): Last login timestamp
-- `isActive` (BOOLEAN, Not Null, Default: true): Account status
+- `userId` (BIGINT, Primary Key, Auto Increment)
+- `username` (VARCHAR(50), Not Null, Unique)
+- `email` (VARCHAR(100), Not Null, Unique)
+- `passwordHash` (VARCHAR(255), Not Null)
+- `firstName` (VARCHAR(50), Not Null)
+- `lastName` (VARCHAR(50), Not Null)
+- `createdAt` (TIMESTAMP, Not Null)
+- `lastLoginAt` (TIMESTAMP, Nullable)
+- `isActive` (BOOLEAN, Not Null, Default: true)
 
 **Tests**
 - **Test: Insert Valid User**
@@ -80,13 +80,13 @@ The Portfolio table stores information about user investment portfolios.
 The Stock table stores information about tradeable securities.
 
 **Attributes and Description**
-- `stockId` (BIGINT, Primary Key, Auto Increment): Unique stock identifier
-- `symbol` (VARCHAR(10), Not Null, Unique): Stock ticker symbol
-- `companyName` (VARCHAR(255), Not Null): Company name
-- `currentPrice` (DECIMAL(10,2), Nullable): Current stock price
-- `lastUpdated` (TIMESTAMP, Nullable): Price last update time
-- `sector` (VARCHAR(100), Nullable): Business sector
-- `marketCap` (BIGINT, Nullable): Market capitalization
+- `stockId` (BIGINT, Primary Key, Auto Increment)
+- `symbol` (VARCHAR(10), Not Null, Unique)
+- `companyName` (VARCHAR(255), Not Null)
+- `currentPrice` (DECIMAL(10,2), Nullable)
+- `lastUpdated` (TIMESTAMP, Nullable)
+- `sector` (VARCHAR(100), Nullable)
+- `marketCap` (BIGINT, Nullable)
 
 **Tests**
 - **Test: Insert Valid Stock**
@@ -112,15 +112,15 @@ The Stock table stores information about tradeable securities.
 The Transaction table records all buy/sell transactions for portfolio tracking.
 
 **Attributes and Description**
-- `transactionId` (BIGINT, Primary Key, Auto Increment): Unique transaction identifier
-- `portfolioId` (BIGINT, Foreign Key to Portfolio.portfolioId, Not Null): Associated portfolio
-- `stockId` (BIGINT, Foreign Key to Stock.stockId, Not Null): Stock involved in transaction
-- `transactionType` (ENUM('BUY', 'SELL'), Not Null): Transaction type
-- `quantity` (INT, Not Null): Number of shares
-- `pricePerShare` (DECIMAL(10,2), Not Null): Price per share at transaction
-- `totalAmount` (DECIMAL(15,2), Not Null): Total transaction amount
-- `transactionDate` (TIMESTAMP, Not Null): Transaction date
-- `fees` (DECIMAL(8,2), Default: 0.00): Transaction fees
+- `transactionId` (BIGINT, Primary Key, Auto Increment)
+- `portfolioId` (BIGINT, Foreign Key to Portfolio.portfolioId, Not Null)
+- `stockId` (BIGINT, Foreign Key to Stock.stockId, Not Null)
+- `transactionType` (ENUM('BUY', 'SELL'), Not Null)
+- `quantity` (INT, Not Null)
+- `pricePerShare` (DECIMAL(10,2), Not Null)
+- `totalAmount` (DECIMAL(15,2), Not Null)
+- `transactionDate` (TIMESTAMP, Not Null)
+- `fees` (DECIMAL(8,2), Default: 0.00)
 
 **Tests**
 - **Test: Insert Valid Transaction**
@@ -152,14 +152,14 @@ The Transaction table records all buy/sell transactions for portfolio tracking.
 The Position table tracks current holdings for each portfolio.
 
 **Attributes and Description**
-- `positionId` (BIGINT, Primary Key, Auto Increment): Unique position identifier
-- `portfolioId` (BIGINT, Foreign Key to Portfolio.portfolioId, Not Null): Associated portfolio
-- `stockId` (BIGINT, Foreign Key to Stock.stockId, Not Null): Stock position
-- `quantity` (INT, Not Null): Current shares owned
-- `averageCost` (DECIMAL(10,2), Not Null): Average cost per share
-- `totalCost` (DECIMAL(15,2), Not Null): Total cost basis
-- `currentValue` (DECIMAL(15,2), Nullable): Current market value
-- `updatedAt` (TIMESTAMP, Not Null): Last update timestamp
+- `positionId` (BIGINT, Primary Key, Auto Increment)
+- `portfolioId` (BIGINT, Foreign Key to Portfolio.portfolioId, Not Null)
+- `stockId` (BIGINT, Foreign Key to Stock.stockId, Not Null)
+- `quantity` (INT, Not Null)
+- `averageCost` (DECIMAL(10,2), Not Null)
+- `totalCost` (DECIMAL(15,2), Not Null)
+- `currentValue` (DECIMAL(15,2), Nullable)
+- `updatedAt` (TIMESTAMP, Not Null)
 
 **Unique Constraint**: (portfolioId, stockId) - One position per stock per portfolio
 
