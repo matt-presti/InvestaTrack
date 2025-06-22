@@ -4,24 +4,26 @@
 
 ### Table: User
 **Table Description**
-The User table stores information about registered users of the investment portfolio tracker application.
+The User table stores information about registered users of the investment portfolio tracker application. Passwords are hashed using BCrypt for security.
 
 **Attributes and Description**
-- `userId` (BIGINT, Primary Key, Auto Increment)
-- `username` (VARCHAR(50), Not Null, Unique)
-- `email` (VARCHAR(100), Not Null, Unique)
-- `passwordHash` (VARCHAR(255), Not Null)
-- `firstName` (VARCHAR(50), Not Null)
-- `lastName` (VARCHAR(50), Not Null)
-- `createdAt` (TIMESTAMP, Not Null)
-- `lastLoginAt` (TIMESTAMP, Nullable)
-- `isActive` (BOOLEAN, Not Null, Default: true)
+- `id` (BIGINT, Primary Key, Auto Increment): Unique user identifier
+- `username` (VARCHAR(50), Not Null, Unique): User's login name
+- `email` (VARCHAR(100), Not Null, Unique): User's email address
+- `password` (VARCHAR(255), Not Null): BCrypt hashed password
+- `confirm_password` (VARCHAR(255), Not Null): BCrypt hashed confirmation password
+- `firstName` (VARCHAR(50), Not Null): User's first name
+- `lastName` (VARCHAR(50), Not Null): User's last name
+- `createdAt` (TIMESTAMP, Not Null, Default: CURRENT_TIMESTAMP): Account creation date
+- `lastLoginAt` (TIMESTAMP, Nullable): Last successful login
+- `isActive` (BOOLEAN, Not Null, Default: true): Account status
+- `resetPasswordToken` (VARCHAR(255), Nullable): Token for password reset
 
 **Tests**
 - **Test: Insert Valid User**
   - Description: Verify that a new user can be successfully registered
-  - Steps: Insert user with valid data for all required fields
-  - Expected: User successfully created and retrievable
+  - Steps: Insert user with valid data meeting password requirements
+  - Expected: User successfully created with BCrypt hashed passwords
   - Status: Pass/Fail
 
 - **Test: Enforce Unique Username**
@@ -38,8 +40,48 @@ The User table stores information about registered users of the investment portf
 
 - **Test: Password Encryption**
   - Description: Verify passwords are encrypted before storage
-  - Steps: Create user and verify password is hashed in database
-  - Expected: Raw password never stored, only BCrypt hash
+  - Steps: Create user and verify both password fields are BCrypt hashed
+  - Expected: Raw passwords never stored, only BCrypt hashes
+  - Status: Pass/Fail
+
+- **Test: Password Validation**
+  - Description: Verify password meets complexity requirements
+  - Steps: Attempt registration with weak password
+  - Expected: Registration fails with validation error
+  - Status: Pass/Fail
+
+### Table: UserRoleJoin
+**Table Description**
+The UserRoleJoin table manages user roles and permissions for authorization.
+
+**Attributes and Description**
+- `id` (BIGINT, Primary Key, Auto Increment): Unique join record identifier
+- `users_id` (BIGINT, Foreign Key to User.id, Not Null): Reference to user
+- `authority` (VARCHAR(50), Not Null): Role name (e.g., "USER", "ADMIN")
+
+**Tests**
+- **Test: Insert Valid User Role**
+  - Description: Verify user role assignment
+  - Steps: Create user role join record with valid user and authority
+  - Expected: Role successfully assigned to user
+  - Status: Pass/Fail
+
+- **Test: Enforce Foreign Key Constraint**
+  - Description: Verify users_id foreign key constraint
+  - Steps: Attempt to create role with non-existent user ID
+  - Expected: Insert fails with foreign key violation
+  - Status: Pass/Fail
+
+- **Test: Multiple Roles Per User**
+  - Description: Verify user can have multiple roles
+  - Steps: Assign multiple authorities to same user
+  - Expected: All role assignments created successfully
+  - Status: Pass/Fail
+
+- **Test: Role-based Access Control**
+  - Description: Verify Spring Security recognizes user roles
+  - Steps: Authenticate user and check hasAuthority() works
+  - Expected: User can access role-appropriate endpoints
   - Status: Pass/Fail
 
 ### Table: Portfolio
@@ -48,7 +90,7 @@ The Portfolio table stores information about user investment portfolios.
 
 **Attributes and Description**
 - `portfolioId` (BIGINT, Primary Key, Auto Increment): Unique portfolio identifier
-- `userId` (BIGINT, Foreign Key to User.userId, Not Null): Portfolio owner
+- `userId` (BIGINT, Foreign Key to User.id, Not Null): Portfolio owner
 - `name` (VARCHAR(100), Not Null): Portfolio name
 - `description` (TEXT, Nullable): Portfolio description
 - `totalValue` (DECIMAL(15,2), Not Null, Default: 0.00): Current total value
@@ -69,10 +111,10 @@ The Portfolio table stores information about user investment portfolios.
   - Expected: Insert fails with foreign key violation
   - Status: Pass/Fail
 
-- **Test: Multiple Portfolios Per User**
-  - Description: Verify user can have multiple portfolios
-  - Steps: Create multiple portfolios for same user
-  - Expected: All portfolios created successfully
+- **Test: Portfolio Ownership**
+  - Description: Verify user can only access their own portfolios
+  - Steps: User A attempts to access User B's portfolio
+  - Expected: Access denied with 403 Forbidden
   - Status: Pass/Fail
 
 ### Table: Stock
@@ -101,12 +143,6 @@ The Stock table stores information about tradeable securities.
   - Expected: Insert fails with unique constraint violation
   - Status: Pass/Fail
 
-- **Test: Price Update**
-  - Description: Verify stock prices can be updated
-  - Steps: Update existing stock price and timestamp
-  - Expected: Price and timestamp updated successfully
-  - Status: Pass/Fail
-
 ### Table: Transaction
 **Table Description**
 The Transaction table records all buy/sell transactions for portfolio tracking.
@@ -129,22 +165,10 @@ The Transaction table records all buy/sell transactions for portfolio tracking.
   - Expected: Transaction successfully recorded
   - Status: Pass/Fail
 
-- **Test: Enforce Foreign Key Constraints**
-  - Description: Verify portfolio and stock foreign keys
-  - Steps: Attempt transaction with invalid portfolioId or stockId
-  - Expected: Insert fails with foreign key violation
-  - Status: Pass/Fail
-
-- **Test: Calculate Total Amount**
-  - Description: Verify total amount calculation
-  - Steps: Insert transaction and verify totalAmount = quantity * pricePerShare + fees
-  - Expected: Total amount correctly calculated
-  - Status: Pass/Fail
-
-- **Test: Positive Quantity Constraint**
-  - Description: Verify quantity must be positive
-  - Steps: Attempt to insert transaction with zero or negative quantity
-  - Expected: Insert fails with check constraint violation
+- **Test: Transaction Authorization**
+  - Description: Verify user can only create transactions in their portfolios
+  - Steps: User attempts transaction in another user's portfolio
+  - Expected: Operation denied with 403 Forbidden
   - Status: Pass/Fail
 
 ### Table: Position
@@ -164,68 +188,90 @@ The Position table tracks current holdings for each portfolio.
 **Unique Constraint**: (portfolioId, stockId) - One position per stock per portfolio
 
 **Tests**
-- **Test: Insert Valid Position**
-  - Description: Verify position can be created
-  - Steps: Insert position with valid portfolio and stock
-  - Expected: Position successfully created
-  - Status: Pass/Fail
-
-- **Test: Enforce Unique Portfolio-Stock Combination**
-  - Description: Verify one position per stock per portfolio
-  - Steps: Attempt to create duplicate portfolio-stock position
-  - Expected: Insert fails with unique constraint violation
-  - Status: Pass/Fail
-
-- **Test: Update Position on Transaction**
-  - Description: Verify position updates when transactions occur
-  - Steps: Execute buy transaction and verify position quantity/cost updates
-  - Expected: Position reflects new quantity and average cost
+- **Test: Position Access Control**
+  - Description: Verify user can only view positions in their portfolios
+  - Steps: User attempts to view another user's positions
+  - Expected: Access denied or empty results
   - Status: Pass/Fail
 
 ## Data Access Methods
 
-### getUserPortfolios
-**Description**: Retrieves all portfolios for a specific user
-**Parameters**: userId (Long)
-**Returns**: List of Portfolio objects with basic information
+### Authentication & Authorization Methods
+
+### authenticateUser
+**Description**: Validates user credentials and establishes session
+**Parameters**: username (String), password (String)
+**Returns**: UserDetails object if successful, throws exception if failed
+**Implementation**: Uses Spring Security UserDetailsService
 **Tests**:
-- Valid user with portfolios: Should return all user's portfolios
-- Valid user with no portfolios: Should return empty list
-- Invalid userId: Should return empty list or throw exception
+- Valid credentials: Should authenticate and create session
+- Invalid username: Should throw UsernameNotFoundException
+- Invalid password: Should throw BadCredentialsException
+- Account disabled: Should throw DisabledException
+
+### loadUserByUsername
+**Description**: Loads user details for Spring Security authentication
+**Parameters**: username (String)
+**Returns**: UserDetails implementation with authorities
+**Tests**:
+- Valid username: Should return user with correct roles
+- Invalid username: Should throw UsernameNotFoundException
+- User with multiple roles: Should return all authorities
+
+### hasAuthority
+**Description**: Checks if authenticated user has specific role
+**Parameters**: authority (String)
+**Returns**: Boolean indicating permission
+**Tests**:
+- Admin user accessing admin endpoint: Should return true
+- Regular user accessing admin endpoint: Should return false
+- Unauthenticated user: Should return false
+
+### Portfolio Access Methods
+
+### getUserPortfolios
+**Description**: Retrieves all portfolios for authenticated user only
+**Parameters**: Authentication object (from Spring Security context)
+**Returns**: List of Portfolio objects belonging to authenticated user
+**Tests**:
+- Authenticated user with portfolios: Should return only user's portfolios
+- Authenticated user with no portfolios: Should return empty list
+- Cross-user access prevention: Should never return other users' portfolios
 
 ### getPortfolioDetails
-**Description**: Retrieves detailed portfolio information including positions
-**Parameters**: portfolioId (Long), userId (Long) 
-**Returns**: Portfolio object with positions and current values
+**Description**: Retrieves detailed portfolio information with ownership validation
+**Parameters**: portfolioId (Long), Authentication object
+**Returns**: Portfolio object with positions if user owns it
 **Tests**:
 - Valid portfolio owned by user: Should return complete portfolio details
-- Valid portfolio not owned by user: Should throw unauthorized exception
-- Invalid portfolioId: Should throw not found exception
+- Valid portfolio not owned by user: Should throw AccessDeniedException
+- Invalid portfolioId: Should throw NotFoundException
 
 ### addTransaction
-**Description**: Records a new buy/sell transaction and updates positions
-**Parameters**: Transaction object
-**Returns**: Transaction ID if successful, error message if failed
+**Description**: Records transaction with authorization check
+**Parameters**: Transaction object, Authentication object
+**Returns**: Transaction ID if successful, throws exception if unauthorized
 **Tests**:
-- Valid buy transaction: Should create transaction and update/create position
-- Valid sell transaction: Should create transaction and update position
-- Sell more than owned: Should throw insufficient shares exception
-- Invalid portfolio/stock: Should throw validation exception
+- Valid transaction in user's portfolio: Should create transaction and update position
+- Transaction in another user's portfolio: Should throw AccessDeniedException
+- Invalid portfolio/stock: Should throw ValidationException
 
-### getPortfolioPerformance
-**Description**: Calculates portfolio performance metrics
-**Parameters**: portfolioId (Long), dateRange (String)
-**Returns**: Performance metrics (total value, gain/loss, percentage return)
-**Tests**:
-- Portfolio with positions: Should return accurate performance calculations
-- Empty portfolio: Should return zero values
-- Invalid date range: Should throw validation exception
+## Security Testing
 
-### updateStockPrices
-**Description**: Updates current stock prices from external API
-**Parameters**: List of stock symbols (or all stocks)
-**Returns**: Number of stocks updated successfully
-**Tests**:
-- Valid symbols: Should update prices and timestamps
-- Invalid symbols: Should log errors but not fail completely
-- API unavailable: Should handle gracefully with cached data
+### Session Management Tests
+- **Test: Session Creation**: Login creates valid session
+- **Test: Session Expiry**: Expired sessions require re-authentication
+- **Test: Concurrent Sessions**: Multiple sessions handled correctly
+- **Test: Session Invalidation**: Logout properly destroys session
+
+### Authorization Tests
+- **Test: Endpoint Protection**: Protected endpoints require authentication
+- **Test: Role-based Access**: ADMIN endpoints reject USER role
+- **Test: Resource Ownership**: Users cannot access others' resources
+- **Test: CSRF Protection**: State-changing operations require CSRF token
+
+### Password Security Tests
+- **Test: BCrypt Hashing**: Passwords properly hashed with salt
+- **Test: Password Validation**: Complex password requirements enforced
+- **Test: Password Confirmation**: Registration requires matching passwords
+- **Test: Password Reset**: Reset token functionality works securely
