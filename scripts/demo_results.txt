@@ -1,0 +1,312 @@
+================================================================
+InvestaTrack API Demo
+================================================================
+
+1. SETTING UP CLEAN TEST ENVIRONMENT
+   → Clearing existing data...
+Cleared 0 users and 0 portfolios
+   → Adding fresh test data (3 users + 3 portfolios)...
+   Result: SUCCESS! Added 3 users and 3 portfolios
+
+================================================================
+2. TESTING USER ENTITY & API
+================================================================
+
+Command: curl -u admin:password http://localhost:8080/api/users
+GET /api/users - List all users (clean JSON with security applied):
+[
+  {
+    "id": 1,
+    "username": "alice",
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "createdAt": "2025-07-07T12:33:19.351165",
+    "active": true,
+    "fullName": "Alice Smith"
+  },
+  {
+    "id": 2,
+    "username": "bob",
+    "firstName": "Bob",
+    "lastName": "Johnson",
+    "createdAt": "2025-07-07T12:33:19.371685",
+    "active": true,
+    "fullName": "Bob Johnson"
+  },
+  {
+    "id": 3,
+    "username": "charlie",
+    "firstName": "Charlie",
+    "lastName": "Williams",
+    "createdAt": "2025-07-07T12:33:19.372225",
+    "active": true,
+    "fullName": "Charlie Williams"
+  }
+]
+
+Command: curl -u admin:password http://localhost:8080/api/users/1
+GET /api/users/1 - Get specific user by ID:
+{
+  "id": 1,
+  "username": "alice",
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "createdAt": "2025-07-07T12:33:19.351165",
+  "active": true,
+  "fullName": "Alice Smith"
+}
+
+================================================================
+3. TESTING PORTFOLIO ENTITY & API
+================================================================
+
+Command: curl -u admin:password http://localhost:8080/api/portfolios
+GET /api/portfolios - List all portfolios with user relationships:
+[
+  {
+    "portfolioID": 1,
+    "name": "Growth Portfolio",
+    "description": "Test portfolio for Alice",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.417114",
+    "updatedAt": "2025-07-07T12:33:19.41713",
+    "user": {
+      "id": 1,
+      "username": "alice",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "createdAt": "2025-07-07T12:33:19.351165",
+      "active": true,
+      "fullName": "Alice Smith"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  },
+  {
+    "portfolioID": 2,
+    "name": "Conservative Portfolio",
+    "description": "Test portfolio for Bob",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.41802",
+    "updatedAt": "2025-07-07T12:33:19.41803",
+    "user": {
+      "id": 2,
+      "username": "bob",
+      "firstName": "Bob",
+      "lastName": "Johnson",
+      "createdAt": "2025-07-07T12:33:19.371685",
+      "active": true,
+      "fullName": "Bob Johnson"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  },
+  {
+    "portfolioID": 3,
+    "name": "Tech Portfolio",
+    "description": "Test portfolio for Charlie",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.418457",
+    "updatedAt": "2025-07-07T12:33:19.418464",
+    "user": {
+      "id": 3,
+      "username": "charlie",
+      "firstName": "Charlie",
+      "lastName": "Williams",
+      "createdAt": "2025-07-07T12:33:19.372225",
+      "active": true,
+      "fullName": "Charlie Williams"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  }
+]
+
+Command: curl -u admin:password http://localhost:8080/api/portfolios/1
+GET /api/portfolios/1 - Get specific portfolio by ID:
+{
+  "portfolioID": 1,
+  "name": "Growth Portfolio",
+  "description": "Test portfolio for Alice",
+  "totalValue": 10000.00,
+  "totalCost": 9500.00,
+  "createdAt": "2025-07-07T12:33:19.417114",
+  "updatedAt": "2025-07-07T12:33:19.41713",
+  "user": {
+    "id": 1,
+    "username": "alice",
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "createdAt": "2025-07-07T12:33:19.351165",
+    "active": true,
+    "fullName": "Alice Smith"
+  },
+  "gainLoss": 500.00,
+  "gainLossPercentage": 5.2600
+}
+
+================================================================
+4. TESTING CRUD OPERATIONS
+================================================================
+
+Command: curl -X POST http://localhost:8080/api/portfolios -H 'Content-Type: application/json' -d '{...}'
+POST /api/portfolios - Creating new portfolio via API:
+Creating portfolio for user ID 1...
+Verifying the portfolio was created
+Command: curl -u admin:password http://localhost:8080/api/portfolios/user/1
+Verification - Alice's portfolios after creation attempt:
+[
+  {
+    "portfolioID": 1,
+    "name": "Growth Portfolio",
+    "description": "Test portfolio for Alice",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.417114",
+    "updatedAt": "2025-07-07T12:33:19.41713",
+    "user": {
+      "id": 1,
+      "username": "alice",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "createdAt": "2025-07-07T12:33:19.351165",
+      "active": true,
+      "fullName": "Alice Smith"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  },
+  {
+    "portfolioID": 4,
+    "name": "API Test Portfolio",
+    "description": "Portfolio created via REST API for testing",
+    "totalValue": 25000.00,
+    "totalCost": 23000.00,
+    "createdAt": "2025-07-07T12:33:19.98321",
+    "updatedAt": "2025-07-07T12:33:19.983228",
+    "user": 1,
+    "gainLoss": 2000.00,
+    "gainLossPercentage": 8.7000
+  }
+]
+
+================================================================
+5. ENTITY RELATIONSHIPS DEMONSTRATION
+================================================================
+
+Showing User to Portfolio relationships work correctly:
+
+Users summary:
+[
+  {
+    "id": 1,
+    "username": "alice",
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "createdAt": "2025-07-07T12:33:19.351165",
+    "active": true,
+    "fullName": "Alice Smith"
+  },
+  {
+    "id": 2,
+    "username": "bob",
+    "firstName": "Bob",
+    "lastName": "Johnson",
+    "createdAt": "2025-07-07T12:33:19.371685",
+    "active": true,
+    "fullName": "Bob Johnson"
+  },
+  {
+    "id": 3,
+    "username": "charlie",
+    "firstName": "Charlie",
+    "lastName": "Williams",
+    "createdAt": "2025-07-07T12:33:19.372225",
+    "active": true,
+    "fullName": "Charlie Williams"
+  }
+]
+
+Portfolio ownership summary:
+[
+  {
+    "portfolioID": 1,
+    "name": "Growth Portfolio",
+    "description": "Test portfolio for Alice",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.417114",
+    "updatedAt": "2025-07-07T12:33:19.41713",
+    "user": {
+      "id": 1,
+      "username": "alice",
+      "firstName": "Alice",
+      "lastName": "Smith",
+      "createdAt": "2025-07-07T12:33:19.351165",
+      "active": true,
+      "fullName": "Alice Smith"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  },
+  {
+    "portfolioID": 2,
+    "name": "Conservative Portfolio",
+    "description": "Test portfolio for Bob",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.41802",
+    "updatedAt": "2025-07-07T12:33:19.41803",
+    "user": {
+      "id": 2,
+      "username": "bob",
+      "firstName": "Bob",
+      "lastName": "Johnson",
+      "createdAt": "2025-07-07T12:33:19.371685",
+      "active": true,
+      "fullName": "Bob Johnson"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  },
+  {
+    "portfolioID": 3,
+    "name": "Tech Portfolio",
+    "description": "Test portfolio for Charlie",
+    "totalValue": 10000.00,
+    "totalCost": 9500.00,
+    "createdAt": "2025-07-07T12:33:19.418457",
+    "updatedAt": "2025-07-07T12:33:19.418464",
+    "user": {
+      "id": 3,
+      "username": "charlie",
+      "firstName": "Charlie",
+      "lastName": "Williams",
+      "createdAt": "2025-07-07T12:33:19.372225",
+      "active": true,
+      "fullName": "Charlie Williams"
+    },
+    "gainLoss": 500.00,
+    "gainLossPercentage": 5.2600
+  },
+  {
+    "portfolioID": 4,
+    "name": "API Test Portfolio",
+    "description": "Portfolio created via REST API for testing",
+    "totalValue": 25000.00,
+    "totalCost": 23000.00,
+    "createdAt": "2025-07-07T12:33:19.98321",
+    "updatedAt": "2025-07-07T12:33:19.983228",
+    "user": 1,
+    "gainLoss": 2000.00,
+    "gainLossPercentage": 8.7000
+  }
+]
+
+================================================================
+DEMO COMPLETE - ALL FEATURES WORKING
+================================================================
+
