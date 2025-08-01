@@ -13,23 +13,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Configure authorization (similar to your friend's antMatchers)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/h2-console/**").permitAll()  // Allow H2 console
-                        .requestMatchers("/api/**").authenticated()     // Require auth for API
-                        .requestMatchers("/test/**").authenticated()    // Require auth for test endpoints
-                        .anyRequest().authenticated()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/test/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
+                        .anyRequest().permitAll()
                 )
-                // Enable HTTP Basic authentication
                 .httpBasic(httpBasic -> {})
-                // Enable logout (like your friend's config)
                 .logout(logout -> logout.permitAll())
-                // Enable CORS (like your friend's config)
                 .cors(cors -> {})
-                // Disable CSRF (like your friend's config)
                 .csrf(csrf -> csrf.disable());
 
-        // Allow H2 console to work in frames
         http.headers(headers -> headers.frameOptions().sameOrigin());
 
         return http.build();
