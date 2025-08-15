@@ -68,8 +68,8 @@ The application features a robust backend API with comprehensive portfolio manag
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/investatrack.git
-   cd investatrack
+   git clone https://github.com/matt-presti/InvestaTrack.git
+   cd InvestaTrack
    ```
 
 2. **Set up the backend**
@@ -116,7 +116,7 @@ The application features a robust backend API with comprehensive portfolio manag
 - Stock lookup by symbol or company name
 - Price tracking and updates
 - Sector-based organization
-- 
+
 ### Professional API
 - **RESTful endpoints** with proper HTTP methods
 - **OpenAPI documentation** with interactive testing
@@ -130,46 +130,21 @@ The application features a robust backend API with comprehensive portfolio manag
 ### Interactive Documentation
 Access the complete API documentation at [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
-### Key Endpoints
+### Portfolio Management API
+![Portfolio Management Endpoints](path/to/portfolio-api-screenshot.png)
+*Clean portfolio endpoints with professional documentation*
 
-#### Portfolio Management
-```http
-GET    /api/portfolios/user/{userId}     # Get user portfolios
-GET    /api/portfolios/{id}/summary      # Portfolio details
-POST   /api/portfolios/{id}/update-values # Refresh portfolio values
-```
+### Transaction Management API
+![Transaction Management Endpoints](path/to/transaction-api-screenshot.png)
+*Comprehensive transaction tracking with DTOs*
 
-#### Transaction Management
-```http
-GET    /api/transactions                 # All transactions
-GET    /api/transactions/portfolio/{id}  # Portfolio transactions
-POST   /api/transactions/buy             # Create buy transaction
-POST   /api/transactions/sell            # Create sell transaction
-```
+### Stock Information API
+![Stock Management Endpoints](path/to/stock-api-screenshot.png)
+*Stock lookup and management capabilities*
 
-#### Stock Information
-```http
-GET    /api/stocks                       # All stocks
-GET    /api/stocks/symbol/{symbol}       # Stock by symbol
-GET    /api/stocks/search?query={term}   # Search stocks
-```
-
-### Sample API Response
-```json
-{
-  "transactionId": 1,
-  "portfolioId": 1,
-  "portfolioName": "Growth Fund",
-  "stockSymbol": "AAPL",
-  "stockName": "Apple Inc.",
-  "transactionType": "BUY",
-  "quantity": 10,
-  "pricePerShare": 190.23,
-  "totalAmount": 1902.30,
-  "fees": 4.95,
-  "description": "BUY 10 shares of AAPL @ $190.23"
-}
-```
+### API Response Examples
+![API Response Sample](path/to/api-response-screenshot.png)
+*Clean DTO responses with proper data structure*
 
 ---
 
@@ -181,14 +156,14 @@ GET    /api/stocks/search?query={term}   # Search stocks
 - **Database Integration** - JPA/Hibernate with relational design
 - **Security Implementation** - Authentication and data protection
 - **API Documentation** - OpenAPI/Swagger professional documentation
-- 
+
 ### Industry-Ready Features
 - **Professional API Documentation** - Interactive Swagger UI
 - **Clean Data Transfer** - DTOs for secure API responses
 - **Error Handling** - Comprehensive exception management
 - **CORS Configuration** - Production-ready security setup
 - **Transaction Management** - Database consistency and integrity
-- **Responsive Frontend** - Modern React-based user interface for demonstation
+- **Responsive Frontend** - Modern React-based user interface for demonstration
 
 ---
 
@@ -216,6 +191,7 @@ This project was built as a comprehensive demonstration of enterprise Java devel
 - **Frontend Integration** - React.js and modern JavaScript
 - **Professional Practices** - Clean code, documentation
 - **Industry Standards** - Security, error handling, API design
+
 ---
 
 ## License
