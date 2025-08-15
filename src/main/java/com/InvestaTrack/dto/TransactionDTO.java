@@ -22,22 +22,50 @@ public class TransactionDTO {
     private String description;
     private BigDecimal netAmount;
 
-    // Constructor that converts from Transaction entity
+    // Constructor that converts from Transaction entity with null safety
     public TransactionDTO(Transaction transaction) {
         this.transactionId = transaction.getTransactionId();
-        this.portfolioId = transaction.getPortfolio().getPortfolioID();
-        this.portfolioName = transaction.getPortfolio().getName();
-        this.stockId = transaction.getStock().getStockID();
-        this.stockSymbol = transaction.getStock().getSymbol();
-        this.stockName = transaction.getStock().getCompanyName();
-        this.transactionType = transaction.getTransactionType().toString();
+
+        // Safe portfolio access
+        if (transaction.getPortfolio() != null) {
+            this.portfolioId = transaction.getPortfolio().getPortfolioID();
+            this.portfolioName = transaction.getPortfolio().getName();
+        } else {
+            this.portfolioId = null;
+            this.portfolioName = "Unknown Portfolio";
+        }
+
+        // Safe stock access
+        if (transaction.getStock() != null) {
+            this.stockId = transaction.getStock().getStockID();
+            this.stockSymbol = transaction.getStock().getSymbol();
+            this.stockName = transaction.getStock().getCompanyName();
+        } else {
+            this.stockId = null;
+            this.stockSymbol = "Unknown";
+            this.stockName = "Unknown Stock";
+        }
+
+        this.transactionType = transaction.getTransactionType() != null ?
+                transaction.getTransactionType().toString() : "UNKNOWN";
         this.quantity = transaction.getQuantity();
         this.pricePerShare = transaction.getPricePerShare();
         this.totalAmount = transaction.getTotalAmount();
         this.transactionDate = transaction.getTransactionDate();
         this.fees = transaction.getFees();
-        this.description = transaction.getDescription();
-        this.netAmount = transaction.getNetAmount();
+
+        // Safe method calls for computed properties
+        try {
+            this.description = transaction.getDescription();
+        } catch (Exception e) {
+            this.description = "Transaction description unavailable";
+        }
+
+        try {
+            this.netAmount = transaction.getNetAmount();
+        } catch (Exception e) {
+            this.netAmount = this.totalAmount; // Fallback to total amount
+        }
     }
 
     // Getters

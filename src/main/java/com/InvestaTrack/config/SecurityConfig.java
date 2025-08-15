@@ -26,6 +26,12 @@ public class SecurityConfig {
                         .requestMatchers("/static/**").permitAll()      // Static resources
                         .requestMatchers("/favicon.ico").permitAll()    // Favicon
                         .requestMatchers("/manifest.json").permitAll()  // React manifest
+                        // Swagger/OpenAPI endpoints
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
                         .anyRequest().permitAll()                       // Allow all for development
                 )
                 .httpBasic(httpBasic -> httpBasic.disable())    // Disable basic auth for cleaner development

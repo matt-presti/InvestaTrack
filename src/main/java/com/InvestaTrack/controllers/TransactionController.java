@@ -2,11 +2,14 @@ package com.InvestaTrack.controllers;
 
 import com.InvestaTrack.models.Transaction;
 import com.InvestaTrack.models.Transaction.TransactionType;
+import com.InvestaTrack.dto.TransactionDTO;
 import com.InvestaTrack.services.TransactionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -14,92 +17,96 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/transactions")
+@Tag(name = "Transaction Management", description = "Operations for managing buy/sell transactions")
 public class TransactionController {
 
     private final TransactionService transactionService;
 
-    // Constructor injection
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
-    // Get all transactions
+    // Get all transactions as DTOs
     @GetMapping
-    public ResponseEntity<List<Transaction>> getAllTransactions() {
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
         try {
-            List<Transaction> transactions = transactionService.getAllTransactions();
+            List<TransactionDTO> transactions = transactionService.getAllTransactions()
+                    .stream()
+                    .map(TransactionDTO::new)
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Get specific transaction by ID
+    // Get transaction by ID as DTO
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<TransactionDTO> getTransactionById(@PathVariable Long id) {
         try {
             Transaction transaction = transactionService.getTransactionById(id);
-            return ResponseEntity.ok(transaction);
+            return ResponseEntity.ok(new TransactionDTO(transaction));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    // Get transactions by portfolio ID
+    // Get transactions by portfolio as DTOs
     @GetMapping("/portfolio/{portfolioId}")
-    public ResponseEntity<List<Transaction>> getTransactionsByPortfolioId(@PathVariable Long portfolioId) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TransactionDTO>> getTransactionsByPortfolioId(@PathVariable Long portfolioId) {
         try {
-            List<Transaction> transactions = transactionService.getTransactionsByPortfolioId(portfolioId);
+            List<TransactionDTO> transactions = transactionService.getTransactionsByPortfolioId(portfolioId)
+                    .stream()
+                    .map(TransactionDTO::new)
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Get transactions by type
+    // Get transactions by type as DTOs
     @GetMapping("/portfolio/{portfolioId}/type/{type}")
-    public ResponseEntity<List<Transaction>> getTransactionsByType(
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TransactionDTO>> getTransactionsByType(
             @PathVariable Long portfolioId,
             @PathVariable TransactionType type) {
         try {
-            List<Transaction> transactions = transactionService.getTransactionsByType(portfolioId, type);
+            List<TransactionDTO> transactions = transactionService.getTransactionsByType(portfolioId, type)
+                    .stream()
+                    .map(TransactionDTO::new)
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Get transactions within date range
-    @GetMapping("/portfolio/{portfolioId}/date-range")
-    public ResponseEntity<List<Transaction>> getTransactionsByDateRange(
-            @PathVariable Long portfolioId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        try {
-            List<Transaction> transactions = transactionService.getTransactionsByDateRange(portfolioId, startDate, endDate);
-            return ResponseEntity.ok(transactions);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    // Get recent transactions
+    // Get recent transactions as DTOs
     @GetMapping("/portfolio/{portfolioId}/recent")
-    public ResponseEntity<List<Transaction>> getRecentTransactions(
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TransactionDTO>> getRecentTransactions(
             @PathVariable Long portfolioId,
             @RequestParam(defaultValue = "10") int limit) {
         try {
-            List<Transaction> transactions = transactionService.getRecentTransactions(portfolioId, limit);
+            List<TransactionDTO> transactions = transactionService.getRecentTransactions(portfolioId, limit)
+                    .stream()
+                    .map(TransactionDTO::new)
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Get transaction summary for portfolio
+    // Get transaction summary
     @GetMapping("/portfolio/{portfolioId}/summary")
     public ResponseEntity<Map<String, Object>> getTransactionSummary(@PathVariable Long portfolioId) {
         try {
@@ -110,20 +117,7 @@ public class TransactionController {
         }
     }
 
-    // Create new transaction
-    @PostMapping
-    public ResponseEntity<?> createTransaction(@Valid @RequestBody Transaction transaction) {
-        try {
-            Transaction createdTransaction = transactionService.createTransaction(transaction);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTransaction);
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
-    // Create buy transaction (simplified endpoint)
+    // Create buy transaction
     @PostMapping("/buy")
     public ResponseEntity<?> createBuyTransaction(@RequestBody Map<String, Object> transactionData) {
         try {
@@ -137,7 +131,7 @@ public class TransactionController {
             Transaction transaction = transactionService.createBuyTransaction(
                     portfolioId, stockId, quantity, pricePerShare, fees
             );
-            return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new TransactionDTO(transaction));
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Invalid transaction data: " + e.getMessage());
@@ -145,7 +139,7 @@ public class TransactionController {
         }
     }
 
-    // Create sell transaction (simplified endpoint)
+    // Create sell transaction
     @PostMapping("/sell")
     public ResponseEntity<?> createSellTransaction(@RequestBody Map<String, Object> transactionData) {
         try {
@@ -159,7 +153,7 @@ public class TransactionController {
             Transaction transaction = transactionService.createSellTransaction(
                     portfolioId, stockId, quantity, pricePerShare, fees
             );
-            return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new TransactionDTO(transaction));
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Invalid transaction data: " + e.getMessage());
@@ -167,12 +161,43 @@ public class TransactionController {
         }
     }
 
-    // Update transaction (limited to fees)
+    // Date range transactions
+    @GetMapping("/portfolio/{portfolioId}/date-range")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TransactionDTO>> getTransactionsByDateRange(
+            @PathVariable Long portfolioId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        try {
+            List<TransactionDTO> transactions = transactionService.getTransactionsByDateRange(portfolioId, startDate, endDate)
+                    .stream()
+                    .map(TransactionDTO::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(transactions);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Create general transaction
+    @PostMapping
+    public ResponseEntity<?> createTransaction(@Valid @RequestBody Transaction transaction) {
+        try {
+            Transaction createdTransaction = transactionService.createTransaction(transaction);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new TransactionDTO(createdTransaction));
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    // Update transaction
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateTransaction(@PathVariable Long id, @RequestBody Transaction transactionDetails) {
         try {
             Transaction updatedTransaction = transactionService.updateTransaction(id, transactionDetails);
-            return ResponseEntity.ok(updatedTransaction);
+            return ResponseEntity.ok(new TransactionDTO(updatedTransaction));
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
